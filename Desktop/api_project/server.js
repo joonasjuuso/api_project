@@ -1,7 +1,9 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const app = express();
 const port = 8000;
 
+app.use(bodyParser.json())
 
 const items = [ {
     title: "yes",
@@ -26,27 +28,51 @@ const items = [ {
         information: "2323" 
     }]
 app.get('/', (req, res) => {
-  res.send("Hello");
+  res.send("Please sign in");
+})
+
+app.post('/', (req, res) => {
+
 })
 
 app.get('/items', (req, res) => {
-    res.json(dogs)
+    res.json(items)
 })
 
 app.post('/items', (req, res) => {
-    res.send(dogs)
+    items.push(
+        { title: req.body.title, description: req.body.description, 
+            price: req.body.price, date: req.body.date, 
+            delivery: req.body.delivery, 
+            information: req.body.information }
+            )
 })
 
 app.get('/items/:category', (req, res) => {
     const category = items.find(item => item.category === req.params.category)
+    if(category == undefined) {
+        res.sendStatus(404)
+    } else {
+        res.json(category)
+    }
 })
 
 app.get('/items/:location', (req, res) => {
     const location = items.find(item => item.location === req.params.location)
+    if(location == undefined) {
+        res.sendStatus(404)
+    } else {
+        res.json(location)
+    }
 })
 
 app.get('/items/:date', (req, res) => {
     const date = items.find(item => item.date === req.params.date)
+    if(date == undefined) {
+        res.sendStatus(404)
+    } else {
+        res.json(date)
+    }
 })
 
 /* Header reader */
