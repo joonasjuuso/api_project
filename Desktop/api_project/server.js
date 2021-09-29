@@ -8,6 +8,8 @@ const bcrypt = require('bcryptjs');
 const app = express();
 const port = 8000;
 
+var testing = false;
+
 app.use(bodyParser.json());
 
 const items = [ 
@@ -63,17 +65,38 @@ app.get('/', (req, res) => {
   res.send("Please sign in");
 })
 
-app.post('/signup', (req, res) => {
+function setToTesting() {
+    testing = true;
+}
 
+function generateUser() {
     const saltNumber = Math.floor(Math.random() * 6) + 1;
     const salt = bcrypt.genSaltSync(saltNumber);
-    const hashedPassword = bcrypt.hashSync(req.body.password, salt);
+    var password, username, email;
+
+    if(testing) {
+        username = "joonas";
+        password = "moro";
+        email = "joonas@gmail.com";
+    } else {
+        username = req.body.username
+        password = req.body.password;
+        email = req.body.email;
+    }
+
+    const hashedPassword = bcrypt.hashSync(password, salt);
 
     const newUser = {
-        username: req.body.username,
-        password: req.body.password,
-        email: req.body.email,
+        username: username,
+        password: hashedPassword,
+        email: email
     }
+    return newUser;
+}
+
+app.post('/signup', (req, res) => {
+
+    newUser = generateUser()
 
     users.push(newUser)
     res.sendStatus(201)
@@ -93,6 +116,9 @@ passport.use(new JwtStrategy(options, (payload, done) => {
 
 }));
 
+app.get('/users', passport.authenticate('basic', { session: false}), (req, res) => {
+
+});
 app.post('/login', passport.authenticate('basic', { session: false}), (req, res) => {
     const token = jwt.sign({foo: "bar"}, jwtSecretKey);
 
@@ -142,6 +168,17 @@ app.get('/items/:date', (req, res) => {
     }
 })
 
-app.listen(port, () => {
-    console.log(`Example API listening on http://localhost:${port}\n`);
-});
+let serverInstance = null;
+
+module.exports = {
+    start: function() { 
+        serverInstance = app.listen(port, () => { 
+            console.log(`Example API listening on http://localhost:${port}\n`);
+        })
+    },
+    close: function() { 
+        serverInstance.close();
+    },
+    generateUser,
+    setToTesting
+}
