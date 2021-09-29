@@ -107,6 +107,7 @@ app.post('/signup', (req, res) => {
 const jwt = require('jsonwebtoken');
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
+const { info } = require('console');
 const jwtSecretKey = "mySecretKey"
 
 const options = {
@@ -132,16 +133,52 @@ app.get('/items', (req, res) => {
     res.json(items)
 })
 
-app.post('/items',passport.authenticate('jwt', { session: false}), (req, res) => {
+function generateItem() {
+    var itemid, title, description, category, location, price, date, delivery, information;
+    var images = [];
+    if(testing) {
+        itemid = uuidv4();
+        title = "testi";
+        description = "testi";
+        category = "testi";
+        location = "suomi";
+        images = ["yksi", "kaksi"]
+        price = "0";
+        date = "2021";
+        delivery = "Pickup";
+        information = "Joonas";
+    } else {
+        itemid = uuidv4();
+        title = req.body.title;
+        description = req.body.description;
+        category = req.body.category;
+        location = req.body.location;
+        images = req.body.images;
+        price = req.body.price;
+        date = req.body.date;
+        delivery = req.body.delivery;
+        information = req.body.information;
+    }
     items.push(
-        {   itemid: uuid.v4(),
-            title: req.body.title, 
-            description: req.body.description, 
-            price: req.body.price, 
-            date: req.body.date, 
-            delivery: req.body.delivery, 
-            information: req.body.information }
+        {   itemid: uuidv4(),
+            title: title, 
+            description: description,
+            category: category,
+            location: location,
+            images: images,
+            price: price,
+            date: date, 
+            delivery: delivery,
+            information: information }
             );
+}
+
+app.post('/items',passport.authenticate('jwt', { session: false}), (req, res) => {
+    if(!(req.body.title && req.body.description && req.body.price && 
+        req.body.date && req.body.delivery && req.body.delivery)) {
+            res.sendStatus(400).send("All input is required");
+        }
+    generateItem();
     res.sendStatus(201);
 })
 
@@ -172,6 +209,10 @@ app.get('/items/:date', (req, res) => {
     }
 })
 
+app.listen(port, () => { 
+    console.log(`Example API listening on http://localhost:${port}\n`);
+})
+
 let serverInstance = null;
 
 module.exports = {
@@ -184,5 +225,7 @@ module.exports = {
         serverInstance.close();
     },
     generateUser,
+    generateItem,
+    items,
     setToTesting
 }
