@@ -4,6 +4,7 @@ var fs = require('fs');
 const passport = require('passport');
 const BasicStrategy = require('passport-http').BasicStrategy;
 const bcrypt = require('bcryptjs');
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 const port = 8000;
@@ -87,6 +88,7 @@ function generateUser() {
     const hashedPassword = bcrypt.hashSync(password, salt);
 
     const newUser = {
+        userid: uuidv4(),
         username: username,
         password: hashedPassword,
         email: email
@@ -117,6 +119,7 @@ passport.use(new JwtStrategy(options, (payload, done) => {
 }));
 
 app.get('/users', passport.authenticate('basic', { session: false}), (req, res) => {
+    res.json(users)
 
 });
 app.post('/login', passport.authenticate('basic', { session: false}), (req, res) => {
@@ -131,7 +134,8 @@ app.get('/items', (req, res) => {
 
 app.post('/items',passport.authenticate('jwt', { session: false}), (req, res) => {
     items.push(
-        { title: req.body.title, 
+        {   itemid: uuid.v4(),
+            title: req.body.title, 
             description: req.body.description, 
             price: req.body.price, 
             date: req.body.date, 
