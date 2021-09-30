@@ -6,7 +6,6 @@ const BasicStrategy = require('passport-http').BasicStrategy;
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
-const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const jwtSecretKey = require('./secrets.json')
 
@@ -53,16 +52,14 @@ const options = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     secretOrKey: jwtSecretKey.jwtKey
 };
-    
-passport.use(new JwtStrategy(options, (payload, done) => {
-    done(null, {});
-}));
 
 passport.use(new BasicStrategy(
     (username, password, done) => {
         const searchResult = users.find(user => {
            if(user.username = username)  {
+               console.log("username true")
                if(bcrypt.compareSync(password, user.password)) {
+                   console.log("password true")
                    return true;
                }
            }
@@ -76,22 +73,25 @@ passport.use(new BasicStrategy(
     }
 ))
 
-function generateAccessToken(username, password) {
-    return jwt.sign({username, password}, jwtSecretKey.jwtKey, {expiresIn: '1800s'});
+function generateAccessToken(username) {
+    return jwt.sign({username: username}, jwtSecretKey.jwtKey, {expiresIn: '1800s'});
 }
 
 function authenticateToken(req, res, next) {
-    const authHeader = req.header['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-
-    jwt.verify(token, jwtSecretKey.jwtKey, (err, user) => {
-        console.log(err);
-
-        if(err) return res.sendStatus(403);
-        req.user = user;
-
-        next();
-    })
+    const bearerHeader = req.headers['authorization']
+    if ( typeof bearerHeader !== 'undefined') { 
+        const bearerToken = bearerHeader.split(' ')[1]
+        jwt.verify(bearerToken, jwtSecretKey.jwtKey, (err, user) => {
+            if(err) {
+                res.sendStatus(403)
+            } else {
+                req.user = user
+                next();
+            }
+        })
+    } else {
+        res.sendStatus(403)
+    }
 }
 
 function setToTesting() {
@@ -123,34 +123,6 @@ function generateUser(req) {
     }
     return newUser;
 }
-
-app.get('/', (req, res) => {
-    res.send("Please sign in");
-  })
-
-app.post('/signup', (req, res) => {
-    newUser = generateUser(req)
-
-    const token = generateAccessToken({ 
-        username: newUser.username, 
-        password: newUser.password})
-
-    users.push(newUser)
-
-    res.json(token);
-    res.sendStatus(201)
-})
-app.get('/users', authenticateToken, (req, res) => {
-    res.json(users)
-
-});
-app.post('/login', authenticateToken, (req, res) => {
-    res.json(user)
-})
-
-app.get('/items', (req, res) => {
-    res.json(items)
-})
 
 function generateItem() {
     var itemid = uuidv4(), title, description, category, location, price, date, delivery, information;
@@ -191,6 +163,33 @@ function generateItem() {
             information: information }
             );
 }
+
+app.get('/', (req, res) => {
+    res.send("Please sign in");
+  })
+
+app.post('/signup', (req, res) => {
+    newUser = generateUser(req)
+
+    const token = generateAccessToken( {username: newUser.username })
+
+    users.push(newUser)
+
+    res.json(token);
+    res.sendStatus(201)
+})
+app.get('/users', authenticateToken, (req, res) => {
+    res.json(users)
+
+});
+app.post('/login', passport.authenticate('basic', { session: false }), (req, res) => {
+    const token = generateAccessToken(req.body.username)
+    res.json(token)
+})
+
+app.get('/items', (req, res) => {
+    res.json(items)
+})
 
 app.post('/items', authenticateToken, (req, res) => {
     if(!(req.body.title && req.body.description && req.body.price && 
