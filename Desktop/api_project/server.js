@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 
 const app = express();
-const port = 8000;
+const port = 3000;
 
 var testing = false;
 
@@ -207,10 +207,6 @@ app.get('/items/:date', (req, res) => {
     } else {
         res.json(date)
     }
-})
-
-app.listen(port, () => { 
-    console.log(`Example API listening on http://localhost:${port}\n`);
 })
 
 let serverInstance = null;
