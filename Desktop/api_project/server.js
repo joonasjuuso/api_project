@@ -5,6 +5,10 @@ const passport = require('passport');
 const BasicStrategy = require('passport-http').BasicStrategy;
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
+const jwt = require('jsonwebtoken');
+const JwtStrategy = require('passport-jwt').Strategy;
+const ExtractJwt = require('passport-jwt').ExtractJwt;
+const jwtSecretKey = require('./secrets.json')
 
 const app = express();
 const port = 3000;
@@ -44,6 +48,16 @@ const users = [
         email: "yes"
     }];
 
+const options = {
+
+    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    secretOrKey: jwtSecretKey.jwtKey
+};
+    
+passport.use(new JwtStrategy(options, (payload, done) => {
+    done(null, {});
+}));
+
 passport.use(new BasicStrategy(
     (username, password, done) => {
         const searchResult = users.find(user => {
@@ -62,15 +76,29 @@ passport.use(new BasicStrategy(
     }
 ))
 
-app.get('/', (req, res) => {
-  res.send("Please sign in");
-})
+function generateAccessToken(username, password) {
+    return jwt.sign({username, password}, jwtSecretKey.jwtKey, {expiresIn: '1800s'});
+}
+
+function authenticateToken(req, res, next) {
+    const authHeader = req.header['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    jwt.verify(token, jwtSecretKey.jwtKey, (err, user) => {
+        console.log(err);
+
+        if(err) return res.sendStatus(403);
+        req.user = user;
+
+        next();
+    })
+}
 
 function setToTesting() {
     testing = true;
 }
 
-function generateUser() {
+function generateUser(req) {
     const saltNumber = Math.floor(Math.random() * 6) + 1;
     const salt = bcrypt.genSaltSync(saltNumber);
     var password, username, email;
@@ -96,37 +124,28 @@ function generateUser() {
     return newUser;
 }
 
-app.post('/signup', (req, res) => {
+app.get('/', (req, res) => {
+    res.send("Please sign in");
+  })
 
-    newUser = generateUser()
+app.post('/signup', (req, res) => {
+    newUser = generateUser(req)
+
+    const token = generateAccessToken({ 
+        username: newUser.username, 
+        password: newUser.password})
 
     users.push(newUser)
+
+    res.json(token);
     res.sendStatus(201)
 })
-
-const jwt = require('jsonwebtoken');
-const JwtStrategy = require('passport-jwt').Strategy;
-const ExtractJwt = require('passport-jwt').ExtractJwt;
-const { info } = require('console');
-const jwtSecretKey = "mySecretKey"
-
-const options = {
-    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: jwtSecretKey
-};
-
-passport.use(new JwtStrategy(options, (payload, done) => {
-
-}));
-
-app.get('/users', passport.authenticate('basic', { session: false}), (req, res) => {
+app.get('/users', authenticateToken, (req, res) => {
     res.json(users)
 
 });
-app.post('/login', passport.authenticate('basic', { session: false}), (req, res) => {
-    const token = jwt.sign({foo: "bar"}, jwtSecretKey);
-
-    res.json({token: token})
+app.post('/login', authenticateToken, (req, res) => {
+    res.json(user)
 })
 
 app.get('/items', (req, res) => {
@@ -134,10 +153,10 @@ app.get('/items', (req, res) => {
 })
 
 function generateItem() {
-    var itemid, title, description, category, location, price, date, delivery, information;
+    var itemid = uuidv4(), title, description, category, location, price, date, delivery, information;
     var images = [];
     if(testing) {
-        itemid = uuidv4();
+        userid = itemid;
         title = "testi";
         description = "testi";
         category = "testi";
@@ -148,7 +167,7 @@ function generateItem() {
         delivery = "Pickup";
         information = "Joonas";
     } else {
-        itemid = uuidv4();
+        userid = uuidv4();
         title = req.body.title;
         description = req.body.description;
         category = req.body.category;
@@ -173,7 +192,7 @@ function generateItem() {
             );
 }
 
-app.post('/items',passport.authenticate('jwt', { session: false}), (req, res) => {
+app.post('/items', authenticateToken, (req, res) => {
     if(!(req.body.title && req.body.description && req.body.price && 
         req.body.date && req.body.delivery && req.body.delivery)) {
             res.sendStatus(400).send("All input is required");
