@@ -6,6 +6,7 @@ const server = require('../server');
 const address = "http://localhost:3000"
 chai.use(chaiHttp);
 
+let token;
 
 describe('ItemApi tests', function() {
 
@@ -54,12 +55,42 @@ describe('ItemApi tests', function() {
                 email: "joonas@gmail.com"
             })
             .end(function(err, res) {
+                token = res.body.token;
                 expect(err).to.be.null;
                 expect(res).to.have.status(200);
 
                 expect(res.body).to.be.not.empty;
                 expect(res.body.length).to.be.above(100);
 
+                done();
+            })
+        })
+        it('should return on duplicate username', function(done) {
+            chai.request(address)
+            .post('/signup')
+            .send({ 
+                username: "joonas", 
+                password: "yes", 
+                email: "joonas@gmail.com"
+            })
+            .end(function(err, res) {
+                expect(err).to.be.null;
+                expect(res).to.have.status(200);
+                expect(res.body).to.be.empty;
+
+                done();
+            })
+        })
+    })
+
+    describe("POST login", function() {
+        it('should login', function(done) {
+            chai.request(address)
+            .post('/login')
+            .auth('joonas', 'yes')
+            .end(function(err, res) {
+                expect(err).to.be.null;
+                expect(res).to.have.status(200);
                 done();
             })
         })

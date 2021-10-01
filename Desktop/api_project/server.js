@@ -121,6 +121,7 @@ function generateUser(req) {
         password: hashedPassword,
         email: email
     }
+
     return newUser;
 }
 
@@ -171,6 +172,14 @@ app.get('/', (req, res) => {
 app.post('/signup', (req, res) => {
     newUser = generateUser(req)
 
+    const searchResult = users.find(user => {
+        if(user.username == req.body.username)  {
+            console.log("username in use");
+            res.send('Username in use');
+            return false;
+        }
+    })
+
     const token = generateAccessToken( {username: newUser.username })
 
     users.push(newUser)
@@ -184,6 +193,7 @@ app.get('/users', authenticateToken, (req, res) => {
 });
 app.post('/login', passport.authenticate('basic', { session: false }), (req, res) => {
     const token = generateAccessToken(req.body.username)
+    console.log(req.body.username)
     res.json(token)
 })
 
