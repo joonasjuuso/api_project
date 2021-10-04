@@ -30,13 +30,35 @@ describe('ItemApi tests', function() {
 
                 if((res.body[0].title == "yes") &&
                     (res.body[0].description == "yes") && 
-                    (res.body[0].category == "23") && 
-                    (res.body[0].location == "4444") && 
+                    (res.body[0].category == "kirja") && 
+                    (res.body[0].location == "Oulu") && 
                     (res.body[0].images[0] == "2" && res.body[0].images[1] == "2") && 
                     (res.body[0].price == "555") && 
-                    (res.body[0].date == "124") && 
+                    (res.body[0].date == "2021") && 
                     (res.body[0].delivery == "23") && 
                     (res.body[0].information == "2323")) {
+                        done();
+                    } else {
+                        assert.fail("Data not received"); 
+                    }
+            })
+        })
+        it('should return 1 item based on category', function(done) {
+            chai.request(address)
+            .get('/items/kirja')
+            .end(function(err, res) {
+                expect(err).to.be.null;
+                expect(res).to.have.status(200);
+
+                if((res.body.title == "yes") &&
+                    (res.body.description == "yes") && 
+                    (res.body.category == "kirja") && 
+                    (res.body.location == "Oulu") && 
+                    (res.body.images[0] == "2" && res.body.images[1] == "2") && 
+                    (res.body.price == "555") && 
+                    (res.body.date == "2021") && 
+                    (res.body.delivery == "23") && 
+                    (res.body.information == "2323")) {
                         done();
                     } else {
                         assert.fail("Data not received"); 
@@ -75,7 +97,7 @@ describe('ItemApi tests', function() {
             })
             .end(function(err, res) {
                 expect(err).to.be.null;
-                expect(res).to.have.status(200);
+                expect(res).to.have.status(400);
                 expect(res.body).to.be.empty;
 
                 done();
@@ -87,7 +109,7 @@ describe('ItemApi tests', function() {
         it('should login', function(done) {
             chai.request(address)
             .post('/login')
-            .auth('joonas', 'yes')
+            .auth('yes', 'yes')
             .end(function(err, res) {
                 expect(err).to.be.null;
                 expect(res).to.have.status(200);

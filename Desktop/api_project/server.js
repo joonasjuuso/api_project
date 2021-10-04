@@ -66,7 +66,6 @@ passport.use(new BasicStrategy(
                    return true;
                }
            }
-           res.send('Username or password incorrect');
            return false;
         })
         if(searchResult != undefined) {
@@ -166,17 +165,16 @@ function generateItem(req, res) {
     var checkLocation = startsWithCapital(location);
     var checkCategory = startsWithCapital(category);
     if(checkLocation == false) {
-        res.send('Please, write the name of your location with the ' +
+        res.status(400).send('Please, write the name of your location with the ' +
         'first letter as capital letter');
-        return false;
     }
 
     if(checkCategory == true) {
-        res.send('Please, write the name of your category with the ' +
+        res.status(400).send('Please, write the name of your category with the ' +
         'first letter as non-capital letter');
     }
     if(!date.match(/^\d/)) {
-        res.send('Please enter date in number format');
+        res.status(400).send('Please enter date in number format');
         return false;
     }
     items.push(
@@ -201,19 +199,17 @@ app.post('/signup', (req, res) => {
 
     //check if empty data is present
     if(req.body.username == undefined || req.body.password == undefined || req.body.email == undefined) {
-        res.send('Please enter your information');
-        return false;
+        res.status(400).send('Please enter your information');
     }
 
     // check for existing users
     const searchResult = users.find(user => {
         if(user.username == req.body.username)  {
             console.log("username in use");
-            res.send('Username in use');
-            return false;
+            res.status(400).send('Username in use');
         } else if(user.email == req.body.email) {
             console.log("email in use");
-            res.send('Email in use');
+            res.status(400).send('Email in use');
             return false;
         }
     })
@@ -253,7 +249,7 @@ app.post('/items', authenticateToken, (req, res) => {
         req.body.category && req.body.location && req.body.images 
         && req.body.price && req.body.date && req.body.delivery 
         && req.body.information)) {
-            res.sendStatus(400).send("All input is required");
+            res.status(400).send("All input is required");
         }
     generateItem(req, res);
     res.sendStatus(201);
@@ -264,7 +260,8 @@ app.get('/items/:input', (req, res) => {
     {
         const date = items.find(item => item.date === req.params.input)
         if(date == undefined) {
-            res.sendStatus(404)
+            res.status(404).send('Couldnt find any items with your ' +
+            'given parameters');
         } else {
             res.json(date)
         }
@@ -272,7 +269,8 @@ app.get('/items/:input', (req, res) => {
     else if(startsWithCapital(req.params.input)) {
         const location = items.find(item => item.location === req.params.input)
         if(location == undefined) {
-            res.sendStatus(404)
+            res.status(404).send('Couldnt find any items with your ' +
+            'given parameters')
         } else {
             res.json(location)
     }
@@ -280,7 +278,8 @@ app.get('/items/:input', (req, res) => {
     else {
         const category = items.find(item => item.category === req.params.input)
         if(category == undefined) {
-            res.sendStatus(404)
+            res.status(404).send('Couldnt find any items with your ' +
+            'given parameters')
         } else {
             res.json(category)
         }
@@ -344,7 +343,7 @@ app.put('/items/:id',  (req, res) => {
 app.delete('/items/:id', (req, res) => {
 
     const { id } = req.params;
-    
+
     const item = items.find(item => item.id === req.params.id)
     if (item !== undefined) 
     {
@@ -371,5 +370,6 @@ module.exports = {
     generateUser,
     generateItem,
     items,
-    setToTesting
+    setToTesting,
+    startsWithCapital
 }

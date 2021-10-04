@@ -18,12 +18,20 @@ describe('Server tests', function() {
             assert.equal((server.items[2].title == "testi") && 
             (server.items[2].description == "testi") && 
             (server.items[2].category == "testi") && 
-            (server.items[2].location == "suomi") && 
+            (server.items[2].location == "Suomi") && 
             (server.items[2].images[0] == "yksi" && server.items[2].images[1] == "kaksi") && 
             (server.items[2].price == "0") && 
             (server.items[2].date == "2021") &&
             (server.items[2].delivery == "Pickup") && 
             (server.items[2].information == "Joonas"), true)
+        })
+    })
+    describe('Check first letter', function() {
+        it('should return true for this string', function() {
+            assert.equal(server.startsWithCapital("Moi"), true);
+        })
+        it('should return false for this string', function() {
+            assert.equal(server.startsWithCapital("moro"), false)
         })
     })
 })
