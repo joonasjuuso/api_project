@@ -16,6 +16,7 @@ var testing = false;
 
 app.use(bodyParser.json());
 
+// some default items
 const items = [ 
     {
         title: "yes",
@@ -63,6 +64,7 @@ passport.use(new BasicStrategy(
                    return true;
                }
            }
+           res.send('Username or password incorrect');
            return false;
         })
         if(searchResult != undefined) {
@@ -73,6 +75,7 @@ passport.use(new BasicStrategy(
     }
 ))
 
+// custom passport method for authentication when logged in or signed up
 function generateAccessToken(username) {
     return jwt.sign({username: username}, jwtSecretKey.jwtKey, {expiresIn: '1800s'});
 }
@@ -94,6 +97,7 @@ function authenticateToken(req, res, next) {
     }
 }
 
+// for serverTests
 function setToTesting() {
     testing = true;
 }
@@ -113,6 +117,7 @@ function generateUser(req) {
         email = req.body.email;
     }
 
+// use bcrypt to create a secure password and store it in local db
     const hashedPassword = bcrypt.hashSync(password, salt);
 
     const newUser = {
@@ -166,20 +171,33 @@ function generateItem() {
 }
 
 app.get('/', (req, res) => {
-    res.send("Please sign in");
+    res.send("Please sign in"); // main screen
   })
 
 app.post('/signup', (req, res) => {
-    newUser = generateUser(req)
 
+    //check if empty data is present
+    if(req.body.username != undefined || req.body.password != undefined || req.body.email != undefined) {
+        newUser = generateUser(req)
+    } else {
+        res.send('Please enter your information');
+        return false;
+    }
+
+    // check for existing users
     const searchResult = users.find(user => {
         if(user.username == req.body.username)  {
             console.log("username in use");
             res.send('Username in use');
             return false;
+        } else if(user.email == req.body.email) {
+            console.log("email in use");
+            res.send('Email in use');
+            return false;
         }
     })
 
+    //generate JWT token
     const token = generateAccessToken( {username: newUser.username })
 
     users.push(newUser)
@@ -187,10 +205,16 @@ app.post('/signup', (req, res) => {
     res.json(token);
     res.sendStatus(201)
 })
-app.get('/users', authenticateToken, (req, res) => {
+
+// not in use
+/* app.get('/users', authenticateToken, (req, res) => {
     res.json(users)
 
-});
+}); */
+
+// login and signup is done via http-basic, but after logging in,
+// the process of scrolling through pages and checking authorization
+// is done via JWT
 app.post('/login', passport.authenticate('basic', { session: false }), (req, res) => {
     const token = generateAccessToken(req.body.username)
     console.log(req.body.username)
