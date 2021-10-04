@@ -19,24 +19,26 @@ app.use(bodyParser.json());
 // some default items
 const items = [ 
     {
+        itemid: uuidv4(),
         title: "yes",
         description: "yes",
-        category: "23",
-        location: "4444",
+        category: "kirja",
+        location: "Oulu",
         images: ["2","2"],
         price: "555",
-        date: "124",
+        date: "2021",
         delivery: "23",
         information: "2323"
     },
     {
+        itemid: uuidv4(),
         title: "aaaa",
         description: "sdsdadsades",
-        category: "23",
-        location: "44353544",
+        category: "joku",
+        location: "Helsinki",
         images: ["2","2"],
         price: "55567555",
-        date: "124",
+        date: "2020",
         delivery: "23",
         information: "2323" 
     }];
@@ -74,6 +76,10 @@ passport.use(new BasicStrategy(
         }
     }
 ))
+
+function startsWithCapital(word) {
+    return word.charAt(0) === word.charAt(0).toUpperCase();
+}
 
 // custom passport method for authentication when logged in or signed up
 function generateAccessToken(username) {
@@ -130,15 +136,16 @@ function generateUser(req) {
     return newUser;
 }
 
-function generateItem() {
+function generateItem(req, res) {
     var itemid = uuidv4(), title, description, category, location, price, date, delivery, information;
     var images = [];
+
     if(testing) {
         userid = itemid;
         title = "testi";
         description = "testi";
         category = "testi";
-        location = "suomi";
+        location = "Suomi";
         images = ["yksi", "kaksi"]
         price = "0";
         date = "2021";
@@ -155,6 +162,22 @@ function generateItem() {
         date = req.body.date;
         delivery = req.body.delivery;
         information = req.body.information;
+    }
+    var checkLocation = startsWithCapital(location);
+    var checkCategory = startsWithCapital(category);
+    if(checkLocation == false) {
+        res.send('Please, write the name of your location with the ' +
+        'first letter as capital letter');
+        return false;
+    }
+
+    if(checkCategory == true) {
+        res.send('Please, write the name of your category with the ' +
+        'first letter as non-capital letter');
+    }
+    if(!date.match(/^\d/)) {
+        res.send('Please enter date in number format');
+        return false;
     }
     items.push(
         {   itemid: uuidv4(),
@@ -177,9 +200,7 @@ app.get('/', (req, res) => {
 app.post('/signup', (req, res) => {
 
     //check if empty data is present
-    if(req.body.username != undefined || req.body.password != undefined || req.body.email != undefined) {
-        newUser = generateUser(req)
-    } else {
+    if(req.body.username == undefined || req.body.password == undefined || req.body.email == undefined) {
         res.send('Please enter your information');
         return false;
     }
@@ -196,6 +217,8 @@ app.post('/signup', (req, res) => {
             return false;
         }
     })
+
+    newUser = generateUser(req);
 
     //generate JWT token
     const token = generateAccessToken( {username: newUser.username })
@@ -226,40 +249,113 @@ app.get('/items', (req, res) => {
 })
 
 app.post('/items', authenticateToken, (req, res) => {
-    if(!(req.body.title && req.body.description && req.body.price && 
-        req.body.date && req.body.delivery && req.body.delivery)) {
+    if(!(req.body.title && req.body.description && 
+        req.body.category && req.body.location && req.body.images 
+        && req.body.price && req.body.date && req.body.delivery 
+        && req.body.information)) {
             res.sendStatus(400).send("All input is required");
         }
-    generateItem();
+    generateItem(req, res);
     res.sendStatus(201);
 })
 
-app.get('/items/:category', (req, res) => {
-    const category = items.find(item => item.category === req.params.category)
-    if(category == undefined) {
-        res.sendStatus(404)
-    } else {
-        res.json(category)
+app.get('/items/:input', (req, res) => {
+    if(req.params.input.match(/^\d/))
+    {
+        const date = items.find(item => item.date === req.params.input)
+        if(date == undefined) {
+            res.sendStatus(404)
+        } else {
+            res.json(date)
+        }
+    }
+    else if(startsWithCapital(req.params.input)) {
+        const location = items.find(item => item.location === req.params.input)
+        if(location == undefined) {
+            res.sendStatus(404)
+        } else {
+            res.json(location)
+    }
+    }
+    else {
+        const category = items.find(item => item.category === req.params.input)
+        if(category == undefined) {
+            res.sendStatus(404)
+        } else {
+            res.json(category)
+        }
     }
 })
 
-app.get('/items/:location', (req, res) => {
-    const location = items.find(item => item.location === req.params.location)
-    if(location == undefined) {
-        res.sendStatus(404)
-    } else {
-        res.json(location)
-    }
-})
+app.put('/items/:id',  (req, res) => {
 
-app.get('/items/:date', (req, res) => {
-    const date = items.find(item => item.date === req.params.date)
-    if(date == undefined) {
-        res.sendStatus(404)
-    } else {
-        res.json(date)
+    const item = items.find(item => item.id === req.params.id)
+    if(item !== undefined) {
+    if(req.body.title != undefined)
+    {
+        item.title = req.body.title;
     }
-})
+
+    else if (req.body.description != undefined)
+    {
+        item.description = req.body.description;
+    }
+
+    else if(req.body.category != undefined)
+    {
+        item.category = req.body.category;
+    }
+
+    else if(req.body.location != undefined)
+    {
+        item.location = req.body.location;
+    }
+
+    else if(req.body.images  != undefined)
+    {
+        item.images = req.body.images;
+    }
+
+    else if(req.body.price != undefined)
+    {
+        item.price = req.body.price;
+    }
+
+    else if(req.body.date != undefined)
+    {
+        item.date = req.body.date;
+    }
+
+    else if(req.body.information != undefined)
+    {
+        item.information = req.body.information;
+    }
+    else if(req.body.date!= undefined)
+    {
+        item.date = req.body.date;
+    }
+    res.send(item);
+    } else{
+        res.send("Item not found",404);
+    }
+
+});
+
+app.delete('/items/:id', (req, res) => {
+
+    const { id } = req.params;
+    
+    const item = items.find(item => item.id === req.params.id)
+    if (item !== undefined) 
+    {
+        items.splice(item,1);
+        console.log(item)
+        return res.send("Item deleted",200);
+    }
+   else{
+       return res.send("Item not found", 404);
+   }
+   });
 
 let serverInstance = null;
 
