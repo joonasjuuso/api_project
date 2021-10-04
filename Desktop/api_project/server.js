@@ -27,7 +27,7 @@ const items = [
         location: "Oulu",
         images: ["2","2"],
         price: "555",
-        date: 12400,
+        date: "2021",
         deliverytype: "Pickup",
         username: "yes",
         sellernumber: "0501234567",
@@ -41,7 +41,7 @@ const items = [
         location: "Helsinki",
         images: ["2","2"],
         price: "55567555",
-        date: 234524,
+        date: "2021",
         deliverytype: "Delivery",
         username: "2323",
         sellernumber: "0507654321",
@@ -222,16 +222,8 @@ app.get('/', (req, res) => {
 app.post('/signup', (req, res) => {
 
     //check if empty data is present
-<<<<<<< HEAD
     if(req.body.username == undefined || req.body.password == undefined || req.body.email == undefined) {
         res.status(400).send('Please enter your information');
-=======
-    if(req.body.username == undefined || req.body.password == undefined || req.body.email == undefined || req.body.streetaddress == undefined || req.body.city == undefined || req.body.postalcode == undefined) {
-        newUser = generateUser(req)
-    } else {
-        res.send('Please enter your information');
-        return false;
->>>>>>> b3d81dff700ce940d1053f635bdcbfcd385a6595
     }
 
     // check for existing users
@@ -277,16 +269,11 @@ app.get('/items', (req, res) => {
 })
 
 app.post('/items', authenticateToken, (req, res) => {
-<<<<<<< HEAD
     if(!(req.body.title && req.body.description && 
         req.body.category && req.body.location && req.body.images 
         && req.body.price && req.body.date && req.body.delivery 
         && req.body.information)) {
             res.status(400).send("All input is required");
-=======
-    if(!(req.body.username != undefined || req.body.password != undefined || req.body.email != undefined || req.body.streetaddress != undefined || req.body.city != undefined || req.body.postalcode != undefined)) {
-            res.sendStatus(400).send("All input is required");
->>>>>>> b3d81dff700ce940d1053f635bdcbfcd385a6595
         }
     generateItem(req, res);
     res.sendStatus(201);

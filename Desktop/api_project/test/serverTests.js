@@ -22,8 +22,10 @@ describe('Server tests', function() {
             (server.items[2].images[0] == "yksi" && server.items[2].images[1] == "kaksi") && 
             (server.items[2].price == "0") && 
             (server.items[2].date == "2021") &&
-            (server.items[2].delivery == "Pickup") && 
-            (server.items[2].information == "Joonas"), true)
+            (server.items[2].deliverytype == "Pickup") && 
+            (server.items[2].username == "Joonas"),
+            (server.items[2].sellernumber == "05022222222"),
+            (server.items[2].information == "j@gmail.com"), true)
         })
     })
     describe('Check first letter', function() {
