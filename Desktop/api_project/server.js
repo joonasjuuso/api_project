@@ -224,7 +224,9 @@ app.get('/', (req, res) => {
 app.post('/signup', (req, res) => {
 
     //check if empty data is present
-    if(req.body.username == undefined || req.body.password == undefined || req.body.email == undefined) {
+    if(req.body.username == undefined || req.body.password == undefined || req.body.email == undefined || req.body.streetaddress == undefined || req.body.city == undefined || req.body.postalcode == undefined) {
+        newUser = generateUser(req)
+    } else {
         res.send('Please enter your information');
         return false;
     }
@@ -347,13 +349,21 @@ app.put('/items/:id',  (req, res) => {
         item.date = req.body.date;
     }
 
-    else if(req.body.information != undefined)
+    else if(req.body.deliverytype != undefined)
     {
-        item.information = req.body.information;
+        item.deliverytype = req.body.deliverytype;
     }
-    else if(req.body.date!= undefined)
+    else if(req.body.username!= undefined)
     {
-        item.date = req.body.date;
+        item.username = req.body.username;
+    }
+    else if(req.body.sellernumber !=undefined)
+    {
+        item.username = req.body.sellernumber;
+    }
+    else if(req.body.selleremail !=undefined)
+    {
+        item.selleremail = req.body.sellernumber;
     }
     res.send(item);
     }
