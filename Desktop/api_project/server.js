@@ -20,34 +20,43 @@ app.use(bodyParser.json());
 const items = [ 
     {
         itemid: uuidv4(),
+        //itemid: "1",
         title: "yes",
         description: "yes",
         category: "kirja",
         location: "Oulu",
         images: ["2","2"],
         price: "555",
-        date: "2021",
-        delivery: "23",
-        information: "2323"
+        date: 12400,
+        deliverytype: "Pickup",
+        username: "yes",
+        sellernumber: "0501234567",
+        selleremail: "yes@yes.com"
     },
     {
-        itemid: uuidv4(),
+        itemid: "2",
         title: "aaaa",
         description: "sdsdadsades",
         category: "joku",
         location: "Helsinki",
         images: ["2","2"],
         price: "55567555",
-        date: "2020",
-        delivery: "23",
-        information: "2323" 
+        date: 234524,
+        deliverytype: "Delivery",
+        username: "2323",
+        sellernumber: "0507654321",
+        selleremail: "asd@asd.com"
     }];
 
 const users = [
     {
+        userId: "u1",
         username: "yes",
         password: "yes",
-        email: "yes"
+        email: "yes",
+        streetaddress:"Merikoskenkatu x",
+        postalcode: "90500",
+        city: "Oulu"
     }];
 
 const options = {
@@ -110,16 +119,22 @@ function setToTesting() {
 function generateUser(req) {
     const saltNumber = Math.floor(Math.random() * 6) + 1;
     const salt = bcrypt.genSaltSync(saltNumber);
-    var password, username, email;
+    var userid,password, username, email,streetaddress,postalcode,city;
 
     if(testing) {
         username = "joonas";
         password = "moro";
         email = "joonas@gmail.com";
+        streetaddress = "esimerkkitie 56",
+        postalcode = "90123"
+        city = "Oulu"
     } else {
         username = req.body.username
         password = req.body.password;
         email = req.body.email;
+        streetaddress = req.body.streetaddress;
+        postalcode = req.body.postalcode;
+        city = req.body.city;
     }
 
 // use bcrypt to create a secure password and store it in local db
@@ -129,14 +144,17 @@ function generateUser(req) {
         userid: uuidv4(),
         username: username,
         password: hashedPassword,
-        email: email
+        email: email,
+        streetaddress: streetaddress,
+        postalcode: postalcode,
+        city: city
     }
 
     return newUser;
 }
 
-function generateItem(req, res) {
-    var itemid = uuidv4(), title, description, category, location, price, date, delivery, information;
+function generateItem() {
+    var itemid = uuidv4(), title, description, category, location, price, date, deliverytype, username,sellernumber,selleremail;
     var images = [];
 
     if(testing) {
@@ -148,10 +166,12 @@ function generateItem(req, res) {
         images = ["yksi", "kaksi"]
         price = "0";
         date = "2021";
-        delivery = "Pickup";
-        information = "Joonas";
+        deliverytype = "Pickup";
+        username = "Joonas";
+        sellernumber = "05022222222"
+        selleremail = "j@gmail.com"
     } else {
-        userid = uuidv4();
+        itemid = uuidv4();
         title = req.body.title;
         description = req.body.description;
         category = req.body.category;
@@ -159,8 +179,10 @@ function generateItem(req, res) {
         images = req.body.images;
         price = req.body.price;
         date = req.body.date;
-        delivery = req.body.delivery;
-        information = req.body.information;
+        deliverytype = req.body.deliverytype;
+        username = req.body.username;
+        sellernumber = req.body.sellernumber;
+        selleremail = req.body.selleremail;
     }
     var checkLocation = startsWithCapital(location);
     var checkCategory = startsWithCapital(category);
@@ -186,8 +208,10 @@ function generateItem(req, res) {
             images: images,
             price: price,
             date: date, 
-            delivery: delivery,
-            information: information }
+            deliverytype: deliverytype,
+            username: username,
+            sellernumber: sellernumber,
+            selleremail: selleremail}
             );
 }
 
@@ -198,8 +222,16 @@ app.get('/', (req, res) => {
 app.post('/signup', (req, res) => {
 
     //check if empty data is present
+<<<<<<< HEAD
     if(req.body.username == undefined || req.body.password == undefined || req.body.email == undefined) {
         res.status(400).send('Please enter your information');
+=======
+    if(req.body.username == undefined || req.body.password == undefined || req.body.email == undefined || req.body.streetaddress == undefined || req.body.city == undefined || req.body.postalcode == undefined) {
+        newUser = generateUser(req)
+    } else {
+        res.send('Please enter your information');
+        return false;
+>>>>>>> b3d81dff700ce940d1053f635bdcbfcd385a6595
     }
 
     // check for existing users
@@ -245,11 +277,16 @@ app.get('/items', (req, res) => {
 })
 
 app.post('/items', authenticateToken, (req, res) => {
+<<<<<<< HEAD
     if(!(req.body.title && req.body.description && 
         req.body.category && req.body.location && req.body.images 
         && req.body.price && req.body.date && req.body.delivery 
         && req.body.information)) {
             res.status(400).send("All input is required");
+=======
+    if(!(req.body.username != undefined || req.body.password != undefined || req.body.email != undefined || req.body.streetaddress != undefined || req.body.city != undefined || req.body.postalcode != undefined)) {
+            res.sendStatus(400).send("All input is required");
+>>>>>>> b3d81dff700ce940d1053f635bdcbfcd385a6595
         }
     generateItem(req, res);
     res.sendStatus(201);
@@ -325,17 +362,26 @@ app.put('/items/:id',  (req, res) => {
         item.date = req.body.date;
     }
 
-    else if(req.body.information != undefined)
+    else if(req.body.deliverytype != undefined)
     {
-        item.information = req.body.information;
+        item.deliverytype = req.body.deliverytype;
     }
-    else if(req.body.date!= undefined)
+    else if(req.body.username!= undefined)
     {
-        item.date = req.body.date;
+        item.username = req.body.username;
+    }
+    else if(req.body.sellernumber !=undefined)
+    {
+        item.username = req.body.sellernumber;
+    }
+    else if(req.body.selleremail !=undefined)
+    {
+        item.selleremail = req.body.sellernumber;
     }
     res.send(item);
-    } else{
-        res.send("Item not found",404);
+    }
+ else{
+    res.send("Item not found",404);
     }
 
 });
