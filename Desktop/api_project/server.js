@@ -14,6 +14,7 @@ const app = express();
 const port = 3000;
 
 var testing = false;
+var loggedIn = "no";
 
 app.use(cookieParser());
 app.use(bodyParser.json());
@@ -75,6 +76,7 @@ passport.use(new BasicStrategy(
                console.log("username true")
                if(bcrypt.compareSync(password, user.password)) {
                    console.log("password true")
+                   loggedIn = username;
                    return true;
                }
            }
@@ -94,7 +96,7 @@ function startsWithCapital(word) {
 
 // custom passport method for authentication when logged in or signed up
 function generateAccessToken(username) {
-    return jwt.sign(username, jwtSecretKey.jwtKey, {expiresIn: '1800s'});
+    return jwt.sign(username, jwtSecretKey.jwtKey);
 }
 
 // custom-built passport for JWT, you can insert the token either in
@@ -282,8 +284,9 @@ app.post('/signup', (req, res) => {
 // the process of scrolling through pages and checking authorization
 // is done via JWT
 app.post('/login', passport.authenticate('basic', { session: false }), (req, res) => {
-    const token = generateAccessToken(req.body.username)
-    console.log(req.body.username)
+    const token = generateAccessToken(loggedIn);
+    loggedIn = "no";
+    console.log(req.body.username);
     res.cookie('tokenKey', token);
     res.json(token);
     res.sendStatus(201);
