@@ -1,0 +1,421 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "BCI-API",
+        "version": "1.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:3000"
+        }
+    ],
+    "paths": {
+        "/items": {
+            "get": {
+                "summary": "Your GET endpoint",
+                "tags": [],
+                "responses": {},
+                "operationId": "get-items",
+                "description": "Get all the items that are being sold.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Item"
+                            },
+                            "examples": {
+                                "example-1": {
+                                    "title": "Black cat for sale",
+                                    "description": "My cat's too big for my apartment, so I'm selling him with a heavy heart.",
+                                    "category": "pets",
+                                    "location": "Oulu",
+                                    "images": "1,2",
+                                    "price": "5,50e",
+                                    "date": 1632833301,
+                                    "deliveryType": "Delivery",
+                                    "sellerInformation": {
+                                        "sellerName": "Teuvo",
+                                        "sellerNumber": 501234567,
+                                        "sellerEmail": "teuvo@example.com"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "",
+                "operationId": "post-items",
+                "responses": {
+                    "201": {
+                        "description": "Item created"
+                    },
+                    "400": {
+                        "description": "Please enter your information or: Email in use or: username in use"
+                    }
+                },
+                "description": "Post an item that you want to sell.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Item"
+                            },
+                            "examples": {
+                                "example-2": {
+                                    "value": {
+                                        "title": "Black cat for sale",
+                                        "description": "My cat's too big for my apartment, so I'm selling him with a heavy heart.",
+                                        "category": "pets",
+                                        "location": "Oulu",
+                                        "images": "1,2",
+                                        "price": "5,50e",
+                                        "date": 1632833301,
+                                        "deliveryType": "Delivery",
+                                        "sellerInformation": {
+                                            "sellerName": "Teuvo",
+                                            "sellerNumber": 501234567,
+                                            "sellerEmail": "teuvo@example.com"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "description": "Post a new item to sell."
+                },
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ]
+            }
+        },
+        "/items/:id": {
+            "parameters": [],
+            "put": {
+                "summary": "",
+                "operationId": "put-items-itemId",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Item"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Item not found"
+                    }
+                },
+                "description": "Update your own item by providing its ID as a parameter.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Item"
+                            },
+                            "examples": {
+                                "example-1": {
+                                    "title": "Black cat for sale",
+                                    "description": "My cat's too big for my apartment, so I'm selling him with a heavy heart.",
+                                    "category": "pets",
+                                    "location": "Oulu",
+                                    "images": "1,2",
+                                    "price": "5,50e",
+                                    "date": 1632833301,
+                                    "deliveryType": "Delivery",
+                                    "sellerInformation": {
+                                        "sellerName": "Teuvo",
+                                        "sellerNumber": 501234567,
+                                        "sellerEmail": "teuvo@example.com"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ]
+            },
+            "delete": {
+                "summary": "",
+                "operationId": "delete-items-itemId",
+                "responses": {
+                    "200": {
+                        "description": "Item deleted"
+                    },
+                    "201": {
+                        "description": "Created"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                },
+                "description": "Delete your own item by providing its ID as a parameter.",
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ]
+            }
+        },
+        "items/category": {
+            "get": {
+                "summary": "Your GET endpoint",
+                "tags": [],
+                "responses": {},
+                "operationId": "get-categories",
+                "description": "Get items by category",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Item"
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": []
+        },
+        "/signup": {
+            "get": {
+                "summary": "Your GET endpoint",
+                "tags": [],
+                "responses": {},
+                "operationId": "get-signup"
+            },
+            "post": {
+                "summary": "",
+                "operationId": "post-signup",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "examples": {
+                                    "example-1": {
+                                        "value": {}
+                                    }
+                                }
+                            },
+                            "application/xml": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {}
+                                }
+                            }
+                        }
+                    }
+                },
+                "description": "Endpoint for creating accounts."
+            }
+        },
+        "/items/location": {
+            "get": {
+                "summary": "Your GET endpoint",
+                "tags": [],
+                "responses": {},
+                "operationId": "get-items-location",
+                "description": "Get items by location.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Item"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/items/date": {
+            "get": {
+                "summary": "Your GET endpoint",
+                "tags": [],
+                "operationId": "get-items-date",
+                "description": "Get items by date.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Item"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "User": {
+                "title": "User",
+                "type": "object",
+                "description": "",
+                "examples": [
+                    {
+                        "firstName": "Teuvo",
+                        "lastName": "Esti",
+                        "email": "teuvoe@example.com",
+                        "password": "1234",
+                        "address": {
+                            "streetAddress": "Merikoskenkatu X",
+                            "postalCode": "90500",
+                            "city": "Oulu"
+                        }
+                    }
+                ],
+                "properties": {
+                    "userId": {
+                        "type": "string"
+                    },
+                    "username": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "password": {
+                        "type": "string"
+                    },
+                    "streetaddress": {
+                        "type": "string"
+                    },
+                    "postalcode": {
+                        "type": "string"
+                    },
+                    "city": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "username",
+                    "email",
+                    "password",
+                    "streetaddress",
+                    "postalcode",
+                    "city"
+                ]
+            },
+            "Item": {
+                "title": "Item",
+                "type": "object",
+                "description": "Item that is being sold.",
+                "examples": [
+                    {
+                        "title": "Black cat for sale",
+                        "description": "My cat's too big for my apartment, so I'm selling him with a heavy heart.",
+                        "category": "pets",
+                        "location": "Oulu",
+                        "images": "1,2",
+                        "price": "5,50e",
+                        "date": 1632833301,
+                        "deliveryType": "Delivery",
+                        "sellerInformation": {
+                            "sellerName": "Teuvo",
+                            "sellerNumber": 501234567,
+                            "sellerEmail": "teuvo@example.com"
+                        }
+                    }
+                ],
+                "properties": {
+                    "itemid": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "category": {
+                        "type": "string"
+                    },
+                    "location": {
+                        "type": "string"
+                    },
+                    "images": {
+                        "type": "string",
+                        "description": "Up to 4 pictures."
+                    },
+                    "price": {
+                        "type": "string"
+                    },
+                    "date": {
+                        "type": "string",
+                        "description": "Date, SFS-EN 28601-standard, d.m.yyyy",
+                        "format": "date"
+                    },
+                    "deliverytype": {
+                        "type": "string",
+                        "description": "Delivery or pickup"
+                    },
+                    "username": {
+                        "type": "string"
+                    },
+                    "sellernumber": {
+                        "type": "string"
+                    },
+                    "selleremail": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "title",
+                    "description",
+                    "category",
+                    "location",
+                    "images",
+                    "price",
+                    "date",
+                    "deliverytype",
+                    "username",
+                    "sellernumber",
+                    "selleremail"
+                ]
+            }
+        },
+        "securitySchemes": {
+            "passport": {
+                "type": "http",
+                "scheme": "basic"
+            },
+            "JWT": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "security": [
+        {
+            "passport": []
+        },
+        {
+            "JWT": []
+        }
+    ]
+}
