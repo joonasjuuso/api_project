@@ -1,6 +1,8 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+const formidable = require('express-formidable')
+const path = require('path');
 var fs = require('fs');
 const passport = require('passport');
 const BasicStrategy = require('passport-http').BasicStrategy;
@@ -18,6 +20,7 @@ var loggedIn = "no";
 
 app.use(cookieParser());
 app.use(bodyParser.json());
+app.use(formidable());
 
 
 // some default items
@@ -141,7 +144,7 @@ function generateUser(req) {
     const saltNumber = Math.floor(Math.random() * 6) + 1;
     const salt = bcrypt.genSaltSync(saltNumber);
     var userid,password, username, email,streetaddress,postalcode,city;
-
+    console.log(req.fields.username);
     if(testing) {
         username = "joonas";
         password = "moro";
@@ -150,12 +153,12 @@ function generateUser(req) {
         postalcode = "90123"
         city = "Oulu"
     } else {
-        username = req.body.username
-        password = req.body.password;
-        email = req.body.email;
-        streetaddress = req.body.streetaddress;
-        postalcode = req.body.postalcode;
-        city = req.body.city;
+        username = req.fields.username
+        password = req.fields.password;
+        email = req.fields.email;
+        streetaddress = req.fields.streetaddress;
+        postalcode = req.fields.postalcode;
+        city = req.fields.city;
     }
 
 // use bcrypt to create a secure password and store it in local db
@@ -197,17 +200,17 @@ function generateItem(req, res) {
         selleremail = "j@gmail.com"
     } else {
         itemid = uuidv4();
-        title = req.body.title;
-        description = req.body.description;
-        category = req.body.category;
-        location = req.body.location;
-        images = req.body.images;
-        price = req.body.price;
-        date = req.body.date;
-        deliverytype = req.body.deliverytype;
+        title = req.fields.title;
+        description = req.fields.description;
+        category = req.fields.category;
+        location = req.fields.location;
+        images = req.fields.images;
+        price = req.fields.price;
+        date = req.fields.date;
+        deliverytype = req.fields.deliverytype;
         username = user.username;
-        sellernumber = req.body.sellernumber;
-        selleremail = req.body.selleremail;
+        sellernumber = req.fields.sellernumber;
+        selleremail = req.fields.selleremail;
     }
     var checkLocation = startsWithCapital(location);
     var checkCategory = startsWithCapital(category);
@@ -241,22 +244,22 @@ function generateItem(req, res) {
 }
 
 app.get('/', (req, res) => {
-    res.send("Please sign in"); // main screen
+    res.sendFile(path.join(__dirname+'/index.html'));
   })
 
 app.post('/signup', (req, res) => {
 
     //check if empty data is present
-    if(req.body.username == undefined || req.body.password == undefined || req.body.email == undefined) {
+    if(req.fields.username == undefined || req.fields.password == undefined || req.fields.email == undefined) {
         res.status(400).send('Please enter your information');
     }
 
     // check for existing users
     const searchResult = users.find(user => {
-        if(user.username == req.body.username)  {
+        if(user.username == req.fields.username)  {
             console.log("username in use");
             res.status(400).send('Username in use');
-        } else if(user.email == req.body.email) {
+        } else if(user.email == req.fields.email) {
             console.log("email in use");
             res.status(400).send('Email in use');
             return false;
@@ -286,7 +289,7 @@ app.post('/signup', (req, res) => {
 app.post('/login', passport.authenticate('basic', { session: false }), (req, res) => {
     const token = generateAccessToken(loggedIn);
     loggedIn = "no";
-    console.log(req.body.username);
+    console.log(req.fields.username);
     res.cookie('tokenKey', token);
     res.json(token);
     res.sendStatus(201);
@@ -296,11 +299,13 @@ app.get('/items', (req, res) => {
     res.json(items)
 })
 
+// remember to disable basic auth work jwt to work.
 app.post('/items', authenticateToken, (req, res) => {
-    if(!(req.body.title && req.body.description && 
-        req.body.category && req.body.location && req.body.images 
-        && req.body.price && req.body.date && req.body.deliverytype 
-        && req.body.sellernumber && req.body.selleremail)) {
+    console.log(req.fields);
+    if(!(req.fields.title && req.fields.description && 
+        req.fields.category && req.fields.location && req.fields.images 
+        && req.fields.price && req.fields.date && req.fields.deliverytype 
+        && req.fields.sellernumber && req.fields.selleremail)) {
             res.status(400).send("All input is required");
         }
     generateItem(req, res);
@@ -350,56 +355,56 @@ app.put('/items/:id', authenticateToken, (req, res) => {
             console.log(getUserFromDb);
             console.log(items[i].username);
             if(req.params.id == items[i].itemid && getUserFromDb == user.username) {
-                if(req.body.title != undefined)
+                if(req.fields.title != undefined)
                 {
-                    item.title = req.body.title;
+                    item.title = req.fields.title;
                 }
 
-                else if (req.body.description != undefined)
+                else if (req.fields.description != undefined)
                 {
-                    item.description = req.body.description;
+                    item.description = req.fields.description;
                 }
 
-                else if(req.body.category != undefined)
+                else if(req.fields.category != undefined)
                 {
-                    item.category = req.body.category;
+                    item.category = req.fields.category;
                 }
 
-                else if(req.body.location != undefined)
+                else if(req.fields.location != undefined)
                 {
-                    item.location = req.body.location;
+                    item.location = req.fields.location;
                 }
 
-                else if(req.body.images  != undefined)
+                else if(req.fields.images  != undefined)
                 {
-                    item.images = req.body.images;
+                    item.images = req.fields.images;
                 }
 
-                else if(req.body.price != undefined)
+                else if(req.fields.price != undefined)
                 {
-                    item.price = req.body.price;
+                    item.price = req.fields.price;
                 }
 
-                else if(req.body.date != undefined)
+                else if(req.fields.date != undefined)
                 {
-                    item.date = req.body.date;
+                    item.date = req.fields.date;
                 }
 
-                else if(req.body.deliverytype != undefined)
+                else if(req.fields.deliverytype != undefined)
                 {
-                    item.deliverytype = req.body.deliverytype;
+                    item.deliverytype = req.fields.deliverytype;
                 }
-                else if(req.body.username!= undefined)
+                else if(req.fields.username!= undefined)
                 {
-                    item.username = req.body.username;
+                    item.username = req.fields.username;
                 }
-                else if(req.body.sellernumber !=undefined)
+                else if(req.fields.sellernumber !=undefined)
                 {
-                    item.username = req.body.sellernumber;
+                    item.username = req.fields.sellernumber;
                 }
-                else if(req.body.selleremail !=undefined)
+                else if(req.fields.selleremail !=undefined)
                 {
-                    item.selleremail = req.body.sellernumber;
+                    item.selleremail = req.fields.sellernumber;
                 }
                 res.send(item);
             }
