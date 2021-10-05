@@ -131,7 +131,6 @@ describe('ItemApi tests', function() {
                 expect(res).to.have.status(200);
 
                 expect(res.body).to.be.not.empty;
-                expect(res.body.length).to.be.above(100);
 
                 done();
             })
@@ -160,20 +159,96 @@ describe('ItemApi tests', function() {
             .post('/login')
             .auth('yes', 'yes')
             .end(function(err, res) {
-                token = res.get('Authorization');
                 expect(err).to.be.null;
-                expect(res).to.have.status(200);
+                expect(res).to.have.status(201);
+
+                token = res.body.token;
+                let item = { title: "yes",
+                description: "yes",
+                category: "kirja",
+                location: "Oulu",
+                images: ["yksi", "kaksi"], 
+                price: "555",
+                date: "2021",
+                deliverytype: "Pickup",
+                username: "yes",
+                sellernumber: "0501234567",
+                selleremail: "yes@yes.com"}
 
                 chai.request(address)
                 .post('/items')
-                .set('Authorization', token)
+                .send(item)
+                .set({Authorization: 'Bearer ' + token})
                 .end(function(err, res) {
                     expect(err).to.be.null;
                     expect(res).to.have.status(201);
                     done();
                 })
+                done();
             })
-            done();
+        })
+    })
+    
+    describe("PUT signup and add a listing and modify that listing", function() {
+        it('should modify the set listing', function(done) {
+            chai.request(address)
+            .post('/signup')
+            .send({ 
+                username: "joonass", 
+                password: "yes", 
+                email: "joonas@gmaail.com"
+            })
+            .end(function(err, res) {
+                token = res.body.token;
+                expect(err).to.be.null;
+                expect(res).to.have.status(200);
+
+                expect(res.body).to.be.have.property('token');
+
+                token = res.body.token;
+                let item ={ title: "yes",
+                description: "yes",
+                category: "kirja",
+                location: "Oulu",
+                images: ["yksi", "kaksi"], 
+                price: "555",
+                date: "2021",
+                deliverytype: "Pickup",
+                username: "joonass",
+                sellernumber: "0501234567",
+                selleremail: "yes@yes.com"}
+
+                chai.request(address)
+                .post('/items')
+                .send(item)
+                .set({Authorization: 'Bearer ' + token})
+                .end(function(err, res) {
+                    expect(err).to.be.null;
+                    expect(res).to.have.status(200);
+
+                    chai.request(address)
+                    .get('/items')
+                    .end(function(err, res) {
+                        expect(err).to.be.null;
+                        expect(res).to.have.status(200);
+
+                        if(server.items[2] == item) {
+                            chai.request(address)
+                            .put('/items/' + server.items[2].itemid)
+                            .send( { title: "moooo" })
+                            .set({Authorization: 'Bearer ' + token})
+                            .end(function(err, res) {
+                                expect(err).to.be.null;
+                                expect(res).to.have.status(200);
+                                done();
+                            })
+                        }
+                        else {
+                            assert.fail();
+                        }
+                    })
+                })
+            })
         })
     })
 })

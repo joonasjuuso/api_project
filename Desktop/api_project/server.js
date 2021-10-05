@@ -181,7 +181,7 @@ function generateItem(req, res) {
     var user = JSON.parse(JSON.stringify(getUsername));
 
     if(testing) {
-        userid = itemid;
+        itemid = itemid;
         title = "testi";
         description = "testi";
         category = "testi";
@@ -268,7 +268,7 @@ app.post('/signup', (req, res) => {
 
     users.push(newUser)
     res.cookie('tokenKey', token);
-    res.json(token);
+    res.json({token: token});
     res.sendStatus(201)
 })
 
@@ -338,58 +338,70 @@ app.get('/items/:input', (req, res) => {
 app.put('/items/:id', authenticateToken, (req, res) => {
     const item = items.find(item => item.itemid === req.params.id)
     if(item !== undefined) {
-    if(req.body.title != undefined)
-    {
-        item.title = req.body.title;
-    }
+        let nameFromCookie = req.cookies['tokenKey'];
+        var getUsername = jwt.verify(nameFromCookie, jwtSecretKey.jwtKey);
+        var user = JSON.parse(JSON.stringify(getUsername));
+        var itemDeleted = false;
+        for (let i = 0; i < items.length; i++) {
+            const getUserFromDb = items[i].username;
+            console.log(getUserFromDb);
+            console.log(items[i].username);
+            if(req.params.id == items[i].itemid && getUserFromDb == user.username) {
+                if(req.body.title != undefined)
+                {
+                    item.title = req.body.title;
+                }
 
-    else if (req.body.description != undefined)
-    {
-        item.description = req.body.description;
-    }
+                else if (req.body.description != undefined)
+                {
+                    item.description = req.body.description;
+                }
 
-    else if(req.body.category != undefined)
-    {
-        item.category = req.body.category;
-    }
+                else if(req.body.category != undefined)
+                {
+                    item.category = req.body.category;
+                }
 
-    else if(req.body.location != undefined)
-    {
-        item.location = req.body.location;
-    }
+                else if(req.body.location != undefined)
+                {
+                    item.location = req.body.location;
+                }
 
-    else if(req.body.images  != undefined)
-    {
-        item.images = req.body.images;
-    }
+                else if(req.body.images  != undefined)
+                {
+                    item.images = req.body.images;
+                }
 
-    else if(req.body.price != undefined)
-    {
-        item.price = req.body.price;
-    }
+                else if(req.body.price != undefined)
+                {
+                    item.price = req.body.price;
+                }
 
-    else if(req.body.date != undefined)
-    {
-        item.date = req.body.date;
-    }
+                else if(req.body.date != undefined)
+                {
+                    item.date = req.body.date;
+                }
 
-    else if(req.body.deliverytype != undefined)
-    {
-        item.deliverytype = req.body.deliverytype;
-    }
-    else if(req.body.username!= undefined)
-    {
-        item.username = req.body.username;
-    }
-    else if(req.body.sellernumber !=undefined)
-    {
-        item.username = req.body.sellernumber;
-    }
-    else if(req.body.selleremail !=undefined)
-    {
-        item.selleremail = req.body.sellernumber;
-    }
-    res.send(item);
+                else if(req.body.deliverytype != undefined)
+                {
+                    item.deliverytype = req.body.deliverytype;
+                }
+                else if(req.body.username!= undefined)
+                {
+                    item.username = req.body.username;
+                }
+                else if(req.body.sellernumber !=undefined)
+                {
+                    item.username = req.body.sellernumber;
+                }
+                else if(req.body.selleremail !=undefined)
+                {
+                    item.selleremail = req.body.sellernumber;
+                }
+                res.send(item);
+            }
+        }
+        res.send("Cannot modify a listing that is not yours", 403);
     }
  else{
     res.send("Item not found",404);
@@ -398,9 +410,6 @@ app.put('/items/:id', authenticateToken, (req, res) => {
 });
 
 app.delete('/items/:id', authenticateToken, (req, res) => {
-
-    const { id } = req.params;
-
     const item = items.find(item => item.itemid === req.params.id)
     if (item !== undefined) 
     {
@@ -408,8 +417,6 @@ app.delete('/items/:id', authenticateToken, (req, res) => {
         var getUsername = jwt.verify(nameFromCookie, jwtSecretKey.jwtKey);
         var user = JSON.parse(JSON.stringify(getUsername));
         var itemDeleted = false;
-        console.log(user.username);
-        console.log(req.params.id);
         for (let i = 0; i < items.length; i++) {
             const getUserFromDb = items[i].username;
             console.log(getUserFromDb);
