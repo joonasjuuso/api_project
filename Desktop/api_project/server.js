@@ -1,4 +1,5 @@
 const express = require('express');
+const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 var fs = require('fs');
 const passport = require('passport');
@@ -14,7 +15,9 @@ const port = 3000;
 
 var testing = false;
 
+app.use(cookieParser());
 app.use(bodyParser.json());
+
 
 // some default items
 const items = [ 
@@ -91,13 +94,17 @@ function startsWithCapital(word) {
 
 // custom passport method for authentication when logged in or signed up
 function generateAccessToken(username) {
-    return jwt.sign({username: username}, jwtSecretKey.jwtKey, {expiresIn: '1800s'});
+    return jwt.sign(username, jwtSecretKey.jwtKey, {expiresIn: '1800s'});
 }
 
+// custom-built passport for JWT, you can insert the token either in
+// the bearer token in Postman or it can look it up from cookies as 
+// it is stored during login or signup there.
 function authenticateToken(req, res, next) {
     const bearerHeader = req.headers['authorization']
     if ( typeof bearerHeader !== 'undefined') { 
         const bearerToken = bearerHeader.split(' ')[1]
+        console.log(bearerToken);
         jwt.verify(bearerToken, jwtSecretKey.jwtKey, (err, user) => {
             if(err) {
                 res.sendStatus(403)
@@ -107,7 +114,19 @@ function authenticateToken(req, res, next) {
             }
         })
     } else {
-        res.sendStatus(403)
+        let cookie = req.cookies['tokenKey'];
+        if(cookie == 'undefined') {
+            res.sendStatus(403);
+        } else {
+            jwt.verify(cookie, jwtSecretKey.jwtKey, (err, user) => {
+                if(err) {
+                    res.sendStatus(403)
+                } else {
+                    req.user = user
+                    next();
+                }
+            })
+        }
     }
 }
 
@@ -153,9 +172,13 @@ function generateUser(req) {
     return newUser;
 }
 
-function generateItem() {
+function generateItem(req, res) {
     var itemid = uuidv4(), title, description, category, location, price, date, deliverytype, username,sellernumber,selleremail;
     var images = [];
+
+    let nameFromCookie = req.cookies['tokenKey'];
+    var getUsername = jwt.verify(nameFromCookie, jwtSecretKey.jwtKey);
+    var user = JSON.parse(JSON.stringify(getUsername));
 
     if(testing) {
         userid = itemid;
@@ -180,7 +203,7 @@ function generateItem() {
         price = req.body.price;
         date = req.body.date;
         deliverytype = req.body.deliverytype;
-        username = req.body.username;
+        username = user.username;
         sellernumber = req.body.sellernumber;
         selleremail = req.body.selleremail;
     }
@@ -244,7 +267,7 @@ app.post('/signup', (req, res) => {
     const token = generateAccessToken( {username: newUser.username })
 
     users.push(newUser)
-
+    res.cookie('tokenKey', token);
     res.json(token);
     res.sendStatus(201)
 })
@@ -261,7 +284,9 @@ app.post('/signup', (req, res) => {
 app.post('/login', passport.authenticate('basic', { session: false }), (req, res) => {
     const token = generateAccessToken(req.body.username)
     console.log(req.body.username)
-    res.json(token)
+    res.cookie('tokenKey', token);
+    res.json(token);
+    res.sendStatus(201);
 })
 
 app.get('/items', (req, res) => {
@@ -271,8 +296,8 @@ app.get('/items', (req, res) => {
 app.post('/items', authenticateToken, (req, res) => {
     if(!(req.body.title && req.body.description && 
         req.body.category && req.body.location && req.body.images 
-        && req.body.price && req.body.date && req.body.delivery 
-        && req.body.information)) {
+        && req.body.price && req.body.date && req.body.deliverytype 
+        && req.body.sellernumber && req.body.selleremail)) {
             res.status(400).send("All input is required");
         }
     generateItem(req, res);
@@ -310,9 +335,8 @@ app.get('/items/:input', (req, res) => {
     }
 })
 
-app.put('/items/:id',  (req, res) => {
-
-    const item = items.find(item => item.id === req.params.id)
+app.put('/items/:id', authenticateToken, (req, res) => {
+    const item = items.find(item => item.itemid === req.params.id)
     if(item !== undefined) {
     if(req.body.title != undefined)
     {
@@ -373,16 +397,31 @@ app.put('/items/:id',  (req, res) => {
 
 });
 
-app.delete('/items/:id', (req, res) => {
+app.delete('/items/:id', authenticateToken, (req, res) => {
 
     const { id } = req.params;
 
-    const item = items.find(item => item.id === req.params.id)
+    const item = items.find(item => item.itemid === req.params.id)
     if (item !== undefined) 
     {
-        items.splice(item,1);
-        console.log(item)
-        return res.send("Item deleted",200);
+        let nameFromCookie = req.cookies['tokenKey'];
+        var getUsername = jwt.verify(nameFromCookie, jwtSecretKey.jwtKey);
+        var user = JSON.parse(JSON.stringify(getUsername));
+        var itemDeleted = false;
+        console.log(user.username);
+        console.log(req.params.id);
+        for (let i = 0; i < items.length; i++) {
+            const getUserFromDb = items[i].username;
+            console.log(getUserFromDb);
+            console.log(items[i].username);
+            if(req.params.id == items[i].itemid && getUserFromDb == user.username) {
+                items.splice(item,1);
+                console.log(item)
+                return res.send("Item deleted",200);
+            }
+        }
+        return res.send("Cannot delete listing that do not belong " + 
+        "to you", 403);
     }
    else{
        return res.send("Item not found", 404);

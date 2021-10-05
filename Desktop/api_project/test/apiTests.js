@@ -154,16 +154,26 @@ describe('ItemApi tests', function() {
         })
     })
 
-    describe("POST login", function() {
-        it('should login', function(done) {
+    describe("POST login and set items", function() {
+        it('should login and set items', function(done) {
             chai.request(address)
             .post('/login')
             .auth('yes', 'yes')
             .end(function(err, res) {
+                token = res.get('Authorization');
                 expect(err).to.be.null;
                 expect(res).to.have.status(200);
-                done();
+
+                chai.request(address)
+                .post('/items')
+                .set('Authorization', token)
+                .end(function(err, res) {
+                    expect(err).to.be.null;
+                    expect(res).to.have.status(201);
+                    done();
+                })
             })
+            done();
         })
     })
 })
