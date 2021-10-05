@@ -8,7 +8,7 @@ This repository includes our project in which we created an API to handle the fo
   
   
 The security protocols in use: HTTP basic and JWT:
-  - HTTP basic handles the login process and after verifying the credentials, it gives the user the JWT token
+  - HTTP basic handles the login and signup process and after verifying the credentials, it gives the user the JWT token
   - With the JWT token, the user is able create items and modify or delete them
   - The JWT token can be passed through the Bearer token in the header OR you can decide on not using it, as it is automated through cookies
 
