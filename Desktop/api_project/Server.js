@@ -403,7 +403,7 @@ app.get('/items/:input', (req, res) => {
 })
 
 app.put('/items/:id', authenticateToken, (req, res) => {
-    const item = items.find(item => item.itemid === req.params.id)
+    const item = items.findIndex(item => item.itemid === req.params.id)
     if(item !== undefined) {
         let nameFromCookie = req.cookies['tokenKey'];
         var getUsername = jwt.verify(nameFromCookie, process.env.JWTKEY);
