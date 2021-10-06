@@ -333,7 +333,27 @@ app.get('/items/:input', (req, res) => {
     }
     }
     else {
-        const category = items.find(item => item.category === req.params.input)
+        usernameItems = [];
+        const category = items.find(item => item.category === req.params.input);
+        for (var i = 0; i < items.length; i++) {
+            const item = items.find(item => item.username === req.params.input);
+            console.log(item);
+            if(item == items[i]) {
+                usernameItems.push(item);
+            }
+        }
+        const user = items.find(user => user.username === req.params.input);
+        if(user != undefined && usernameItems.length > 0) {
+            if(category == undefined || category.username != user.username)
+            {
+                res.json(usernameItems);
+            }
+            else if (category != undefined && category.username != user.username) {
+                res.json(category)
+            } else {
+                res.status(404).send('Something went wrong');
+            }
+        }
         if(category == undefined) {
             res.status(404).send('Couldnt find any items with your ' +
             'given parameters')
@@ -360,49 +380,49 @@ app.put('/items/:id', authenticateToken, (req, res) => {
                     item.title = req.fields.title;
                 }
 
-                else if (req.fields.description != undefined)
+                if (req.fields.description != undefined)
                 {
                     item.description = req.fields.description;
                 }
 
-                else if(req.fields.category != undefined)
+                if(req.fields.category != undefined)
                 {
                     item.category = req.fields.category;
                 }
 
-                else if(req.fields.location != undefined)
+                if(req.fields.location != undefined)
                 {
                     item.location = req.fields.location;
                 }
 
-                else if(req.fields.images  != undefined)
+                if(req.fields.images  != undefined)
                 {
                     item.images = req.fields.images;
                 }
 
-                else if(req.fields.price != undefined)
+                if(req.fields.price != undefined)
                 {
                     item.price = req.fields.price;
                 }
 
-                else if(req.fields.date != undefined)
+                if(req.fields.date != undefined)
                 {
                     item.date = req.fields.date;
                 }
 
-                else if(req.fields.deliverytype != undefined)
+                if(req.fields.deliverytype != undefined)
                 {
                     item.deliverytype = req.fields.deliverytype;
                 }
-                else if(req.fields.username!= undefined)
+                if(req.fields.username!= undefined)
                 {
                     item.username = req.fields.username;
                 }
-                else if(req.fields.sellernumber !=undefined)
+                if(req.fields.sellernumber !=undefined)
                 {
                     item.username = req.fields.sellernumber;
                 }
-                else if(req.fields.selleremail !=undefined)
+                if(req.fields.selleremail !=undefined)
                 {
                     item.selleremail = req.fields.sellernumber;
                 }
