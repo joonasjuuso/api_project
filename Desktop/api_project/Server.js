@@ -12,7 +12,6 @@ const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 const ExtractJwt = require('passport-jwt').ExtractJwt;
-const jwtSecretKey = require('./secrets.json')
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
 const fileupload = require('express-fileupload');
@@ -89,7 +88,7 @@ const users = [
 const options = {
 
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: jwtSecretKey.jwtKey
+    secretOrKey: process.env.JWTKEY
 };
 
 
@@ -121,7 +120,7 @@ function startsWithCapital(word) {
 
 // custom passport method for authentication when logged in or signed up
 function generateAccessToken(username) {
-    return jwt.sign(username, jwtSecretKey.jwtKey);
+    return jwt.sign(username, process.env.JWTKEY);
 }
 
 // custom-built passport for JWT, you can insert the token either in
@@ -132,7 +131,7 @@ function authenticateToken(req, res, next) {
     if ( typeof bearerHeader !== 'undefined') { 
         const bearerToken = bearerHeader.split(' ')[1]
         console.log(bearerToken);
-        jwt.verify(bearerToken, jwtSecretKey.jwtKey, (err, user) => {
+        jwt.verify(bearerToken, process.env.JWTKEY, (err, user) => {
             if(err) {
                 res.sendStatus(403)
             } else {
@@ -145,7 +144,7 @@ function authenticateToken(req, res, next) {
         if(cookie == 'undefined') {
             res.sendStatus(403);
         } else {
-            jwt.verify(cookie, jwtSecretKey.jwtKey, (err, user) => {
+            jwt.verify(cookie, process.env.JWTKEY, (err, user) => {
                 if(err) {
                     res.sendStatus(403)
                 } else {
@@ -204,7 +203,7 @@ function generateItem(req, res) {
     var images = [];
 
     let nameFromCookie = req.cookies['tokenKey'];
-    var getUsername = jwt.verify(nameFromCookie, jwtSecretKey.jwtKey);
+    var getUsername = jwt.verify(nameFromCookie, process.env.JWTKEY);
     var user = JSON.parse(JSON.stringify(getUsername));
 
     if(testing) {
@@ -407,7 +406,7 @@ app.put('/items/:id', authenticateToken, (req, res) => {
     const item = items.find(item => item.itemid === req.params.id)
     if(item !== undefined) {
         let nameFromCookie = req.cookies['tokenKey'];
-        var getUsername = jwt.verify(nameFromCookie, jwtSecretKey.jwtKey);
+        var getUsername = jwt.verify(nameFromCookie, process.env.JWTKEY);
         var user = JSON.parse(JSON.stringify(getUsername));
         var itemDeleted = false;
         for (let i = 0; i < items.length; i++) {
@@ -482,7 +481,7 @@ app.delete('/items/:id', authenticateToken, (req, res) => {
     if (item !== undefined) 
     {
         let nameFromCookie = req.cookies['tokenKey'];
-        var getUsername = jwt.verify(nameFromCookie, jwtSecretKey.jwtKey);
+        var getUsername = jwt.verify(nameFromCookie, process.env.JWTKEY);
         var user = JSON.parse(JSON.stringify(getUsername));
         var itemDeleted = false;
         for (let i = 0; i < items.length; i++) {
