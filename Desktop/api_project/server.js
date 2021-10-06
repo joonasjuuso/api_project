@@ -1,4 +1,6 @@
 const express = require('express');
+const dotenv = require('dotenv')
+dotenv.config()
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const formidable = require('express-formidable')
@@ -11,8 +13,20 @@ const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const jwtSecretKey = require('./secrets.json')
-const cloudinary = require('./utils/cloudinary')
-const upload = require("./utils/multer");
+const cloudinary = require('cloudinary').v2;
+const multer = require('multer');
+const fileupload = require('express-fileupload');
+
+
+
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+})
+
+
 
 const app = express();
 const port = 3000;
@@ -23,6 +37,9 @@ var loggedIn = "no";
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(formidable());
+app.use(fileupload({
+    useTempFiles: true
+}))
 
 
 // some default items
@@ -73,6 +90,8 @@ const options = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     secretOrKey: jwtSecretKey.jwtKey
 };
+
+
 
 passport.use(new BasicStrategy(
     (username, password, done) => {
@@ -302,8 +321,8 @@ app.get('/items', (req, res) => {
 })
 
 // remember to disable basic auth work jwt to work.
-app.post('/items', authenticateToken, upload.single('image'), async (req, res) => {
-    try{
+app.post('/items', authenticateToken, (req, res) => {
+    
     console.log(req.fields);
     //console.log(req.file);
     if(!(req.fields.title && req.fields.description && 
@@ -311,17 +330,22 @@ app.post('/items', authenticateToken, upload.single('image'), async (req, res) =
         && req.fields.price && req.fields.date && req.fields.deliverytype 
         && req.fields.sellernumber && req.fields.selleremail)) {
             res.status(400).send("All input is required");
-        }
-        
-        
-        const result = await cloudinary.uploader.upload(req.file.path)
-        imgurl = result.secure_url
-    generateItem(req, res, imgurl);
-    res.sendStatus(201);
-        }
-        catch(err) {
+        }    
+        const file = req.files.image;
+        console.log(file);
+        cloudinary.uploader.upload(file.tempFilePath, function(err,result)
+        {
             console.log(err)
-        }
+            res.json(result.url);
+            imgurl = result.url
+            generateItem(req, res, imgurl);
+            res.sendStatus(201);
+        })
+
+       
+    
+        
+      
 })
 
 app.get('/items/:input', (req, res) => {
