@@ -29,7 +29,6 @@ cloudinary.config({
 
 
 const app = express();
-const port = 3000;
 
 var testing = false;
 var loggedIn = "no";
@@ -40,6 +39,8 @@ app.use(formidable());
 app.use(fileupload({
     useTempFiles: true
 }))
+
+app.set('port', (process.env.PORT || 80));
 
 
 // some default items
@@ -198,7 +199,7 @@ function generateUser(req) {
     return newUser;
 }
 
-function generateItem(req, res, img) {
+function generateItem(req, res) {
     var itemid = uuidv4(), title, description, category, location, price, date, deliverytype, username,sellernumber,selleremail;
     var images = [];
 
@@ -225,7 +226,7 @@ function generateItem(req, res, img) {
         description = req.fields.description;
         category = req.fields.category;
         location = req.fields.location;
-        images = img;
+        images = req.fields.images;
         price = req.fields.price;
         date = req.fields.date;
         deliverytype = req.fields.deliverytype;
@@ -331,8 +332,10 @@ app.post('/items', authenticateToken, (req, res) => {
         && req.fields.sellernumber && req.fields.selleremail)) {
             res.status(400).send("All input is required");
         }    
-        const file = req.files.image;
-        console.log(file);
+        // images not working because of some reason we couldnt figure out
+        //const file = req.files.image;
+        //console.log(file);
+        /*
         cloudinary.uploader.upload(file.tempFilePath, function(err,result)
         {
             console.log(err)
@@ -340,8 +343,9 @@ app.post('/items', authenticateToken, (req, res) => {
             imgurl = result.url
             generateItem(req, res, imgurl);
             res.sendStatus(201);
-        })
-
+        })*/
+        generateItem(req, res);
+        res.sendStatus(201);
        
     
         
