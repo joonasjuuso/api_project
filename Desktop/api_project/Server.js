@@ -507,8 +507,8 @@ let serverInstance = null;
 
 module.exports = {
     start: function() { 
-        serverInstance = app.listen(port, () => { 
-            console.log(`Example API listening on http://localhost:${port}\n`);
+        serverInstance = app.listen(app.get('port'), () => { 
+            
         })
     },
     close: function() { 
