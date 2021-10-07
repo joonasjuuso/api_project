@@ -1,5 +1,7 @@
 READ FOR UNDERSTANDING OF THE API:
 
+ POST ONLY FORM-DATA!!!!
+
 This repository includes our project in which we created an API to handle the following features:
   - Handling registration
   - Handling login
@@ -7,8 +9,10 @@ This repository includes our project in which we created an API to handle the fo
   - Able to search items with path variables for date, category and location
   - Able to post new items (Images do not work for reasons unknown to us.)
   - Able to modify and delete listing
-  
-  
+   
+   POST ONLY FORM-DATA!!!!
+
+ 
 The security protocols in use: HTTP basic and JWT:
   - HTTP basic handles the login and signup process and after verifying the credentials, it gives the user the JWT token
   - With the JWT token, the user is able create items and modify or delete them
